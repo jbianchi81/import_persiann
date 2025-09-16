@@ -1,0 +1,25 @@
+[project]
+name = "getpersiann"
+version = "0.1.1"
+description = "Download and process Persiann data"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Tomás Calvi", email = "tcalvi@ina.gob.ar" },
+    { name = "Juan Bianchi", email = "jbianchi@ina.gob.ar" }
+]
+dependencies = [
+    "rasterio",
+    "numpy",
+    "gdal",
+    "fiona"
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+persiann-process = "getpersiann.process:main"
+persiann-download = "getpersiann.get_data:main"

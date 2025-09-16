@@ -8,17 +8,21 @@ import rasterio
 from rasterio.mask import mask
 import fiona
 import gc
+import argparse
+import re
 
 # === CONFIGURACIÓN ===
-input_dir = "descargas_persiann"
-output_dir = "persiann_cdp"
-geojson_path = "cca_CDP.geojson"
+defaults = {
+    "input_dir": "descargas_persiann",
+    "output_dir": "persiann_cdp",
+    "bbox_file": "data/bbox.geojson"
+}
 pixelsize = 0.25
-xs, ys = 1440, 400
-originx, originy = -180, 50
+xs = 1440
+ys = 400
+originx = -180
+originy = 50
 nodata_value = -9999
-
-os.makedirs(output_dir, exist_ok=True)
 
 # === FUNCIONES ===
 
@@ -82,22 +86,21 @@ def recortar_tif(tif_path, output_path, geojson_path):
     with rasterio.open(output_path, "w", **out_meta) as dest:
         dest.write(out_image)
 
-def procesar_archivo(filename):
-    if not (filename.endswith(".gz") and filename.startswith("persiann_")):
-        return
+def procesar_archivo(gz_path, output_dir_= defaults["output_dir"], bbox_file = defaults["bbox_file"]):
 
-    datecode = filename[9:17]
-    gz_path = os.path.join(input_dir, filename)
-    bin_path = os.path.join(input_dir, f"{datecode}.bin")
-    tif_path = os.path.join(input_dir, f"{datecode}.tif")
-    recortado_path = os.path.join(output_dir, f"persiann_{datecode}_cdp.tif")
+    filename = os.path.basename(gz_path)
+    input_dir_ = os.path.dirname(gz_path)
+    # gz_path = os.path.join(input_dir, filename)
+    bin_path = os.path.join(input_dir_, re.sub(".bin.gz",".bin",filename))
+    tif_path = os.path.join(input_dir_, re.sub(".bin.gz",".tif",filename))
+    recortado_path = os.path.join(output_dir_, re.sub(".bin.gz","_cdp.tif",filename))
 
     print(f"\nProcesando {filename}...")
 
     try:
         decompress_gz(gz_path, bin_path)
         bin_to_tif(bin_path, tif_path)
-        recortar_tif(tif_path, recortado_path, geojson_path)
+        recortar_tif(tif_path, recortado_path, bbox_file)
 
         os.remove(bin_path)
         os.remove(tif_path)
@@ -106,12 +109,38 @@ def procesar_archivo(filename):
 
     except Exception as e:
         print(f"Error procesando {filename}: {e}")
+        raise e
 
     finally:
         gc.collect()
 
 # === LOOP PRINCIPAL ===
 
-for filename in os.listdir(input_dir):
-    procesar_archivo(filename)
+def main():
+    parser = argparse.ArgumentParser(
+        prog='processpersiann',
+        description='Processes persiann data')
+    
+    parser.add_argument("-f","--filename")
+    parser.add_argument("-i","--input-dir")
+    parser.add_argument("-o","--output-dir")
+    parser.add_argument("-b","--bbox-file")
+    pars = parser.parse_args()
 
+    input_dir = pars.input_dir if pars.input_dir is not None else defaults["input_dir"]
+    output_dir = pars.output_dir if pars.output_dir is not None else defaults["output_dir"]
+    bbox_file = pars.bbox_file if pars.bbox_file is not None else defaults["bbox_file"]
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    if pars.filename is not None:
+        procesar_archivo(pars.filename, output_dir, bbox_file)
+    else:
+        for filename in os.listdir(input_dir):
+            if not (filename.endswith(".gz") and filename.startswith("persiann_")):
+                continue
+            gz_path = os.path.join(input_dir, filename)
+            procesar_archivo(gz_path, output_dir, bbox_file)
+
+if __name__ == '__main__':
+    main()
