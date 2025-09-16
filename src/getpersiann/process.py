@@ -86,14 +86,14 @@ def recortar_tif(tif_path, output_path, geojson_path):
     with rasterio.open(output_path, "w", **out_meta) as dest:
         dest.write(out_image)
 
-def procesar_archivo(gz_path, output_dir_= defaults["output_dir"], bbox_file = defaults["bbox_file"]):
+def procesar_archivo(gz_path, output_dir_= defaults["output_dir"], bbox_file = defaults["bbox_file"], output_full_path : str = None):
 
     filename = os.path.basename(gz_path)
     input_dir_ = os.path.dirname(gz_path)
     # gz_path = os.path.join(input_dir, filename)
     bin_path = os.path.join(input_dir_, re.sub(".bin.gz",".bin",filename))
     tif_path = os.path.join(input_dir_, re.sub(".bin.gz",".tif",filename))
-    recortado_path = os.path.join(output_dir_, re.sub(".bin.gz","_cdp.tif",filename))
+    recortado_path = output_full_path if output_full_path is not None else os.path.join(output_dir_, re.sub(".bin.gz","_cdp.tif",filename))
 
     print(f"\nProcesando {filename}...")
 
@@ -123,7 +123,7 @@ def main():
     
     parser.add_argument("-f","--filename")
     parser.add_argument("-i","--input-dir")
-    parser.add_argument("-o","--output-dir")
+    parser.add_argument("-o","--output-dir", help="Output directory, or output file path when used together with -f")
     parser.add_argument("-b","--bbox-file")
     pars = parser.parse_args()
 
@@ -131,11 +131,14 @@ def main():
     output_dir = pars.output_dir if pars.output_dir is not None else defaults["output_dir"]
     bbox_file = pars.bbox_file if pars.bbox_file is not None else defaults["bbox_file"]
 
-    os.makedirs(output_dir, exist_ok=True)
-
     if pars.filename is not None:
-        procesar_archivo(pars.filename, output_dir, bbox_file)
+        if pars.output_dir is not None and not os.path.isdir(pars.output_dir):
+            procesar_archivo(pars.filename, bbox_file=bbox_file, output_full_path=output_dir)
+        else:
+            os.makedirs(output_dir, exist_ok=True)
+            procesar_archivo(pars.filename, output_dir=output_dir, bbox_file=bbox_file)
     else:
+        os.makedirs(output_dir, exist_ok=True)
         for filename in os.listdir(input_dir):
             if not (filename.endswith(".gz") and filename.startswith("persiann_")):
                 continue

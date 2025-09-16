@@ -17,7 +17,7 @@ options:
 ## process
 ```bash
 $ persiann-process --help
-usage: persiann-process [-h] [-f FILENAME] [-i INPUT_DIR] [-o OUTPUT_DIR] [-b BBOX_FILE]
+usage: processpersiann [-h] [-f FILENAME] [-i INPUT_DIR] [-o OUTPUT_DIR] [-b BBOX_FILE]
 
 Processes persiann data
 
@@ -26,5 +26,6 @@ options:
   -f FILENAME, --filename FILENAME
   -i INPUT_DIR, --input-dir INPUT_DIR
   -o OUTPUT_DIR, --output-dir OUTPUT_DIR
+                        Output directory, or output file path when used together with -f
   -b BBOX_FILE, --bbox-file BBOX_FILE
 ```
