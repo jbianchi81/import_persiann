@@ -1,4 +1,9 @@
 # get persiann
+## install (Ubuntu)
+```bash
+sudo apt install python3-gdal libgdal-dev
+pip install .
+pip install --no-cache-dir --force-reinstall 'GDAL[numpy]==3.8.4'
 ## download
 ```bash
 $ persiann-download --help

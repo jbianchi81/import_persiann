@@ -1,4 +1,0 @@
-rasterio
-numpy
-gdal
-fiona

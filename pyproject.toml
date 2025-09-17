@@ -10,11 +10,17 @@ authors = [
     { name = "Juan Bianchi", email = "jbianchi@ina.gob.ar" }
 ]
 dependencies = [
+    "requests",
     "rasterio",
     "numpy",
-    "gdal",
-    "fiona"
+    "fiona",
+    "wheel",
+    "setuptools>=67",
+    "GDAL[numpy]==3.8.4"
 ]
+
+# requires gdal, install with:
+# sudo apt install python3-gdal libgdal-dev
 
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
